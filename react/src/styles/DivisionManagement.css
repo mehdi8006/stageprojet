@@ -1,0 +1,271 @@
+.admin-divisions {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.admin-divisions h1 {
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 1rem;
+  color: #666;
+}
+
+.column-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.column-filters input,
+.column-filters select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  width: 100%;
+}
+
+.division-form {
+  background-color: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.division-form input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  width: 100%;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.submit-button,
+.cancel-button,
+.edit-button,
+.view-button,
+.history-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.submit-button {
+  background-color: #2563eb;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #1d4ed8;
+}
+
+.cancel-button {
+  background-color: #ef4444;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #dc2626;
+}
+
+.edit-button {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #2563eb;
+}
+
+.view-button {
+  background-color: #10b981;
+  color: white;
+}
+
+.view-button:hover {
+  background-color: #059669;
+}
+
+.history-button {
+  background-color: #6366f1;
+  color: white;
+}
+
+.history-button:hover {
+  background-color: #4f46e5;
+}
+
+.table-container {
+  overflow-x: auto;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.division-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.division-table th,
+.division-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.division-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.division-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.division-tasks-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.division-tasks-modal-content {
+  background-color: white;
+  border-radius: 0.5rem;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.division-tasks-modal-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.division-tasks-modal-header h2 {
+  margin: 0;
+  color: #374151;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.division-tasks-modal-body {
+  padding: 1rem;
+}
+
+.division-no-tasks {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.division-tasks-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.division-tasks-table th,
+.division-tasks-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.division-tasks-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-badge.terminé {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.annulé {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.en_attente {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.status-badge.en_cours {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.no-status {
+  color: #6b7280;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .admin-divisions {
+    padding: 1rem;
+  }
+
+  .division-form {
+    grid-template-columns: 1fr;
+  }
+
+  .form-buttons {
+    flex-direction: column;
+  }
+
+  .form-buttons button {
+    width: 100%;
+  }
+} 

@@ -1,58 +1,151 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
+import './stylesres/History.css';
 
 export default function History() {
-  const { id } = useParams();
-  
+  const navigate = useNavigate();
+  const { id_task } = useParams();
+  const [historiques, setHistoriques] = useState([]);
+  const [newDescription, setNewDescription] = useState('');
+  const [selectedId, setSelectedId] = useState(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const fetchHistoriques = async () => {
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/v1/historiques`
+        );
+        const filteredData = response.data.filter(item => item.task_id == id_task);
+        
+        setHistoriques(filteredData);
+        
+      } catch (error) {
+        console.error('Error fetching historiques:', error);
+      }
+    };
+    fetchHistoriques();
+  }, [id_task]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const file = fileInputRef.current.files[0];
+
+    if (!file) {
+      alert('Please select a file');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('description', newDescription);
+    formData.append('task_id', id_task);
+    
+    // Fixed datetime format for MySQL
+    const mysqlDateTime = new Date().toLocaleString('sv-SE').replace(' ', 'T');
+    formData.append('change_date', mysqlDateTime);
+    formData.append('dochistorique_path', file);
+
+    try {
+      await axios.post('http://127.0.0.1:8000/api/v1/historiques', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      alert(`'History created successfully!'${file}`);
+      navigate('/app/Detail');
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert(`Error: ${error.response?.data?.message || 'History creation failed'}`);
+    }
+  };
+
+  const handleRowClick = (histId) => {
+    setSelectedId(selectedId === histId ? null : histId);
+  };
+
   return (
     <div className="history-page">
-      <h2>Task History {id}</h2>
-      <p>Task history data would be displayed here.</p>
-      <Link to="/app/Detail" className="back-button">Back to Detail</Link>
+      <h2>Task History {id_task}</h2>
 
-      <style>
-        {`
-          .history-page {
-            padding: 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-            font-family: Arial, sans-serif;
-          }
+      <div className="add-history-section">
+        <h3>Add New History Entry</h3>
+        <form onSubmit={handleSubmit}>
+          <textarea
+            value={newDescription}
+            onChange={(e) => setNewDescription(e.target.value)}
+            placeholder="Enter history description..."
+            required
+          />
+          <div className="docs form-group">
+            <label>Documentation*</label>
+            <input
+              type="file"
+              id="fichier"
+              name="fichier"
+              accept=".pdf,.doc,.docx,.txt"
+              required
+              ref={fileInputRef}
+            />
+          </div>
+          <button type="submit" className="add-button">
+            Add History
+          </button>
+        </form>
+      </div>
 
-          .history-page h2 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-            font-size: 2rem;
-          }
+      <table className="history-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Description Preview</th>
+            <th>Change Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {historiques.map((hist) => (
+            <React.Fragment key={hist.hist_id}>
+              <tr
+                className={`history-row ${selectedId === hist.hist_id ? 'selected' : ''}`}
+                onClick={() => handleRowClick(hist.hist_id)}
+              >
+                <td>{hist.hist_id}</td>
+                <td>{hist.description.substring(0, 30)}...</td>
+                <td>{new Date(hist.change_date).toLocaleString()}</td>
+              </tr>
+              
+              {selectedId === hist.hist_id && (
+                <tr className="expanded-row">
+                  <td colSpan="3">
+                    <div className="history-details">
+                      <div className="detail-section">
+                        <h4>Full Description:</h4>
+                        <p>{hist.description}</p>
+                      </div>
+                      <div className="detail-section">
+                        <h4>Attached Document:</h4>
+                        {hist.dochistorique_path && (
+                          <a
+                            href={`http://localhost:8000/storage/${hist.dochistorique_path}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View Document
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          ))}
+        </tbody>
+      </table>
 
-          .history-page p {
-            color: #7f8c8d;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-          }
-
-          .back-button {
-            display: inline-block;
-            padding: 0.8rem 1.5rem;
-            background-color: #3498db;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-            font-size: 1rem;
-            border: none;
-            cursor: pointer;
-          }
-
-          .back-button:hover {
-            background-color: #2980b9;
-          }
-
-          .back-button:active {
-            transform: scale(0.98);
-          }
-        `}
-      </style>
+      <Link to="/app/Detail" className="back-button">
+        Back to Detail
+      </Link>
     </div>
   );
 }

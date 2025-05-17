@@ -1,23 +1,29 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
+import '../../../styles/AdminDashboard.css';
+
+// Import Swiper React components
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
+// Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+// Import required modules
+import { Navigation, Pagination } from 'swiper/modules';
 
 const apiUrl = 'http://127.0.0.1:8000/api/v1';
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('En cours');
+  
+  const [activeTab, setActiveTab] = useState('En Cours');
   const [tasksByStatus, setTasksByStatus] = useState({
     'Terminé': [],
     'Annulé': [],
     'En attente': [],
-    'En cours': []
+    'En Cours': []
   });
   const [divisions, setDivisions] = useState([]);
-  const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allTasks, setAllTasks] = useState([]);
@@ -34,7 +40,6 @@ export default function AdminDashboard() {
         const allTasks = tasksRes.data;
         const allStatuses = statusesRes.data;
         setDivisions(divisionsRes.data);
-        setStatuses(allStatuses);
 
         const tasksWithLatestStatus = allTasks.map(task => {
           const taskStatuses = allStatuses
@@ -49,7 +54,7 @@ export default function AdminDashboard() {
           'Terminé': [],
           'Annulé': [],
           'En attente': [],
-          'En cours': []
+          'En Cours': []
         };
 
         tasksWithLatestStatus.forEach(task => {
@@ -94,7 +99,7 @@ export default function AdminDashboard() {
 
   const getStatusTabClass = (status) => {
     switch (status) {
-      case 'En cours':
+      case 'En Cours':
         return 'status-tab active_tasks';
       case 'Terminé':
         return 'status-tab completed_tasks';
@@ -109,7 +114,7 @@ export default function AdminDashboard() {
 
   const getStatusIndicatorClass = (status) => {
     switch (status) {
-      case 'En cours':
+      case 'En Cours':
         return 'status-indicator active';
       case 'Terminé':
         return 'status-indicator completed';
@@ -147,12 +152,12 @@ export default function AdminDashboard() {
                 480: { slidesPerView: 1 }
               }}
             >
-              {divisions
-                .filter(division => 
+              {divisions.filter(division => 
                   allTasks.some(task => task.division_id === division.division_id)
                 )
                 .map(division => (
                   <SwiperSlide key={division.division_id}>
+                    <Link to={`/app/stidivision/${division.division_id}`}>
                     <div className="divis_card">
                       <h2>{division.division_nom}</h2>
                       <p>{division.description || 'No description available'}</p>
@@ -161,14 +166,16 @@ export default function AdminDashboard() {
                           .filter(task => task.division_id === division.division_id)
                           .map(task => (
                             <div key={task.task_id} className="tache">
+                              
                               <span>{task.task_name}</span>
                               <span className={getStatusIndicatorClass(task.latestStatus)}>
                                 {task.latestStatus}
-                              </span>
+                              </span>         
                             </div>
                           ))}
                       </div>
                     </div>
+                    </Link>
                   </SwiperSlide>
                 ))}
             </Swiper>
@@ -179,7 +186,7 @@ export default function AdminDashboard() {
             <div className="title">Tasks by Status</div>
             
             <div className="Tasks_by_status">
-              {['En cours', 'Terminé', 'Annulé', 'En attente'].map(status => (
+              {['En Cours', 'Terminé', 'Annulé', 'En attente'].map(status => (
                 <div
                   key={status}
                   className={`${getStatusTabClass(status)} ${activeTab === status ? 'active' : ''}`}
@@ -195,7 +202,7 @@ export default function AdminDashboard() {
 
             <div className="tasks-list-ui">
               {tasksByStatus[activeTab].length === 0 ? (
-                <p>No tasks with status "{activeTab}"</p>
+                <p>No tasks with status &quot;{activeTab}&quot;</p>
               ) : (
                 <>
                   {Object.entries(groupTasksByDate(tasksByStatus[activeTab])).map(([date, tasks]) => (
@@ -205,6 +212,7 @@ export default function AdminDashboard() {
                         const division = divisions.find(d => d.division_id === task.division_id);
                         return (
                           <div key={task.task_id} className="task-item">
+                            <Link to={`/app/HistoryAdmin/${task.task_id}`}>
                             <div className="task-avatar" style={{ backgroundColor: '#4F46E5' }}>
                               {task.task_name.charAt(0).toUpperCase()}
                             </div>
@@ -221,6 +229,7 @@ export default function AdminDashboard() {
                                 {task.latestStatus}
                               </span>
                             </div>
+                            </Link>
                           </div>
                         );
                       })}

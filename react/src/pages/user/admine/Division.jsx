@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
+import '../../../styles/DivisionManagement.css';
 
 const apiUrl = 'http://127.0.0.1:8000/api/v1';
 
@@ -127,20 +129,6 @@ export default function AdminDivisions() {
     setEditingId(div.division_id);
   };
 
-  // Delete division
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this division?')) return;
-    try {
-      await axios.delete(`${apiUrl}/divisions/${id}`);
-      const divRes = await axios.get(`${apiUrl}/divisions`);
-      setDivisions(divRes.data);
-      setError('');
-    } catch (err) {
-      console.error('Error deleting division:', err);
-      setError('Failed to delete division');
-    }
-  };
-
   // Unique status options
   const uniqueStatuses = [...new Set(allStatuses.map(s => s.statut))];
 
@@ -199,6 +187,7 @@ export default function AdminDivisions() {
           value={form.password}
           onChange={handleFormChange}
           required
+          autoComplete="current-password"
         />
         <div className="form-buttons">
           <button type="submit" className="submit-button">
@@ -249,9 +238,7 @@ export default function AdminDivisions() {
                   <button className="edit-button" onClick={() => startEdit(div)}>
                     Edit
                   </button>
-                  <button className="delete-button" onClick={() => handleDelete(div.division_id)}>
-                    Delete
-                  </button>
+                 
                 </td>
               </tr>
             ))}
@@ -261,17 +248,17 @@ export default function AdminDivisions() {
 
       {/* Tasks Modal */}
       {modalTasks && (
-        <div className="modal-backdrop" onClick={closeModal}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="division-tasks-modal-backdrop" onClick={closeModal}>
+          <div className="division-tasks-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="division-tasks-modal-header">
               <h2>Tasks for {modalTasks.divisionName}</h2>
               <button className="close-button" onClick={closeModal}>&times;</button>
             </div>
-            <div className="modal-body">
+            <div className="division-tasks-modal-body">
               {modalTasks.tasks.length === 0 ? (
-                <div className="no-tasks">No tasks found for this division</div>
+                <div className="division-no-tasks">No tasks found for this division</div>
               ) : (
-                <table className="tasks-table">
+                <table className="division-tasks-table">
                   <thead>
                     <tr>
                       <th>Task Name</th>
@@ -301,11 +288,8 @@ export default function AdminDivisions() {
                             )}
                           </td>
                           <td>
-                            <button
-                              className="history-button"
-                              onClick={() => alert(`History for: ${task.task_name}`)}
-                            >
-                              View Details
+                            <button className="history-button">
+                              <Link to={`/app/HistoryAdmin/${task.task_id}`}>View history</Link>
                             </button>
                           </td>
                         </tr>

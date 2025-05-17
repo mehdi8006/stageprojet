@@ -7,11 +7,13 @@ import './App.css';
 import './styles/Dachboard.css';
 import './styles/taches.css';
 import './styles/Division.css';
+import './styles/DivisionManagement.css';
 //ADMIN
 import AdminDachboard from './pages/user/admine/AdminDashboard';
 import AddDivisionTask from './pages/user/admine/Taches';
 import AdminDivisions from './pages/user/admine/Division';
 import Settings from './pages/user/admine/Settings';
+import Statistics from './pages/user/admine/Statistics';
 import photoprofile from './images/Screenshot 2025-04-10 141717.png';
 //RESPONSABLE
 import DashboardPage from './pages/user/divresponsable/DashboardPage';
@@ -22,7 +24,10 @@ import MenuItem from '@mui/material/MenuItem';
 import TaschesDetaile from './pages/user/divresponsable/taschesdetaile';
 import UserProfile from './pages/user/UserProfile';
 import History from './pages/user/divresponsable/HistoryDivsion';
-import TaskManagment from './pages/user/divresponsable/TaskManagment';
+import TaskManagement from './pages/user/divresponsable/TaskManagement';
+import Historyadmin from './pages/user/admine/historyadmin';
+import Add from './pages/user/admine/add';
+import Statisticepardivision from './pages/user/admine/statisticepardivision';
 
 export default function Maincontent({ user }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -33,7 +38,7 @@ export default function Maincontent({ user }) {
   if (!user || !user.username) {
     return (
       <div>
-        Unauthorized. Please <a href="/">login</a>.
+        Non autorisé. Veuillez vous <a href="/">connecter</a>.
       </div>
     );
   }
@@ -91,6 +96,13 @@ export default function Maincontent({ user }) {
                   </Link>
                 </li>
                 <li className="menu-item">
+                  <Link to="/app/Statistics" className="menu-link">
+                    <Iconsio5.IoStatsChart size={32} className="menu-icon" />
+                    <span className="menu-text">Statistics</span>
+                  </Link>
+                </li>
+               
+                <li className="menu-item">
                   <Link to="/app/Settings" className="menu-link">
                     <Iconsio5.IoSettings size={32} className="menu-icon" />
                     <span className="menu-text">Settings</span>
@@ -114,9 +126,9 @@ export default function Maincontent({ user }) {
                   </Link>
                 </li>
                 <li className="menu-item">
-                  <Link to="/app/TaskManagment" className="menu-link">
+                  <Link to="/app/TaskManagement" className="menu-link">
                     <Iconsio5.IoAnalytics size={32} className="menu-icon" />
-                    <span className="menu-text">Task Managment</span>
+                    <span className="menu-text">Task Management</span>
                   </Link>
                 </li>
                 <li className="menu-item">
@@ -154,10 +166,10 @@ export default function Maincontent({ user }) {
               <MenuItem onClick={() => {
                 handleCloseMenu(); 
               }}>
-                    <span >Profile</span>
+                    <span >Profil</span>
               </MenuItem>
               </Link>
-              <MenuItem onClick={() => (window.location.href = '/')}>Logout</MenuItem>
+              <MenuItem onClick={() => (window.location.href = '/')}>Déconnexion</MenuItem>
             </Menu>
           </div>
         </div>
@@ -171,6 +183,10 @@ export default function Maincontent({ user }) {
               <Route index element={<AdminDachboard />} />
               <Route path="Taches" element={<AddDivisionTask />} />
               <Route path="Division" element={<AdminDivisions />} />
+              <Route path="Statistics" element={<Statistics />} />
+       
+              <Route path="HistoryAdmin/:idid_task" element={<Historyadmin />} />
+              <Route path="stidivision/:iddiv" element={<Statisticepardivision />} />
               <Route path="Settings" element={<Settings />} />
             </>
           )}
@@ -179,8 +195,8 @@ export default function Maincontent({ user }) {
             <>
               <Route index element={<DashboardPage user={user} />} />
               <Route path="Detail" element={<TaschesDetaile user={user} />} />
-              <Route path="history/:id" element={<History />} />
-              <Route path="TaskManagment" element={<TaskManagment />} />
+              <Route path="history/:id_task" element={<History />} />
+              <Route path="TaskManagement" element={<TaskManagement user={user}/>} />
               <Route path="Settings" element={<Settings />} />
             </>
           )}

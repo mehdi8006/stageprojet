@@ -16,6 +16,7 @@ class Historique extends Model
     protected $fillable = [
         'description',
         'change_date',
+        'dochistorique_path',
         'task_id',
     ];
 

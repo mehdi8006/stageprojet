@@ -6,6 +6,7 @@ import * as icontb from 'react-icons/tb';
 
 const AddDivisionTask = () => {
   const navigate = useNavigate();
+  const [isSaving, setIsSaving] = useState(false);
   const [divisions, setDivisions] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
@@ -41,36 +42,65 @@ const AddDivisionTask = () => {
         : [divId] // Select only the clicked division
     }));
   };
-
   const handleSubmit = e => {
     e.preventDefault();
-
+    setIsSaving(true);
     if (formData.divisionIds.length === 0) {
       alert("Please select at least one division.");
-      return;  // Prevent further submission if no division is selected
+      return;
     }
-
+  
     const fileInput = document.getElementById('file');
-    const file = fileInput.files[0]; // Get the file selected
-
+    const file = fileInput.files[0];
+    
+    if (!file) {
+      alert("Please select a document file.");
+      return;
+    }
+  
+    const today = new Date().toISOString().split('T')[0];
     const payload = new FormData();
-    payload.append('task_name', formData.title); 
+    payload.append('task_name', formData.title);
     payload.append('description', formData.description);
-    payload.append('due_date', formData.startDate); 
+    payload.append('due_date', formData.startDate);
     payload.append('fin_date', formData.endDate);
-    payload.append('division_id', formData.divisionIds[0]); // Assuming only one division selected
-    payload.append('document_path', file); // Append the document file
-
-    axios
-      .post('http://127.0.0.1:8000/api/v1/tasks', payload)  // Use Axios for POST request
+    payload.append('division_id', formData.divisionIds[0]);
+  
+    axios.post('http://127.0.0.1:8000/api/v1/tasks', payload)
       .then(response => {
+        const taskId = response.data.data.task_id;
+  
+        // Create status
+        return axios.post('http://127.0.0.1:8000/api/v1/statuses', {
+          task_id: taskId,
+          statut: 'En attente',
+          date_changed: today,
+        })
+        .then(() => taskId);
+      })
+      .then(taskId => {
+        // Create document path with the actual file
+        const docPayload = new FormData();
+        docPayload.append('document_path', file);  // Using the expected field name
+        docPayload.append('task_id', taskId);
+  
+        return axios.post('http://127.0.0.1:8000/api/v1/documentpaths', docPayload, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      })
+      .then(() => {
+        alert(`Task created successfully!`);
         navigate('/app');
-        alert('Task created successfully:');
       })
       .catch(error => {
-        console.error('Error creating task:', error);
-        alert("Failed to create task. Please check the server logs.");
-      });
+        console.error('Error:', error.response?.data || error.message);
+        alert(`Error: ${error.response?.data?.message || 'Task creation failed'}`);
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });;
   };
 
   return (
@@ -78,22 +108,22 @@ const AddDivisionTask = () => {
       <div className="page-header">
         <h1>
           <icontb.TbListDetails className="header-icon" />
-          Add Task for Division
+          Ajouter une tâche pour la division
         </h1>
       </div>
 
       <form onSubmit={handleSubmit} className="task-form">
         <div className="form-section">
-          <h2>Task Details</h2>
+          <h2>Détails de la tâche</h2>
           <div className="form-group">
-            <label>Title*</label>
+            <label>Titre*</label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
               required
-              placeholder="Enter task title"
+              placeholder="Entrez le titre de la tâche"
             />
           </div>
           <div className="form-group">
@@ -104,7 +134,7 @@ const AddDivisionTask = () => {
               onChange={handleChange}
               required
               rows={4}
-              placeholder="Describe the task in detail"
+              placeholder="Décrivez la tâche en détail"
             />
           </div>
         </div>
@@ -176,9 +206,9 @@ const AddDivisionTask = () => {
           <button type="button" className="cancel-btn" onClick={() => navigate('/Taches')}>
             Cancel
           </button>
-          <button type="submit" className="submit-btn">
+          <button type="submit" className="submit-btn" disabled={isSaving} >
             <Iconsio5.IoSaveOutline className="btn-icon" />
-            Save Task
+            {isSaving ? "Saving..." : "Save Task"}
           </button>
         </div>
       </form>

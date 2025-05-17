@@ -43,7 +43,7 @@ const LoginPage = ({ setUser }) => {
       <Card sx={{ mt: 8, p: 2 }}>
         <CardContent>
           <Typography variant="h5" align="center" gutterBottom>
-            Login
+            Connexion
           </Typography>
           {error && (
             <Box sx={{ mb: 2 }}>
@@ -54,7 +54,7 @@ const LoginPage = ({ setUser }) => {
           )}
           <form onSubmit={handleSubmit}>
             <TextField
-              label="Username"
+              label="Nom d'utilisateur"
               fullWidth
               margin="normal"
               value={username}
@@ -62,7 +62,7 @@ const LoginPage = ({ setUser }) => {
               required
             />
             <TextField
-              label="Password"
+              label="Mot de passe"
               type="password"
               fullWidth
               margin="normal"
@@ -71,9 +71,10 @@ const LoginPage = ({ setUser }) => {
               required
             />
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
-              Login
+              Se connecter
             </Button>
           </form>
+          
         </CardContent>
       </Card>
     </Container>

@@ -16,19 +16,22 @@ class HistoriqueController extends Controller
     }
 
     // POST /api/historiques
-    public function store(Request $request)
-    {
-        $validatedData = $request->validate([
-            'description' => 'required|max:255',
-            'change_date' => 'required|date',
-            'task_id'     => 'required|integer',
+    public function store(Request $request) {
+        // Validate the request
+        $request->validate([
+            'dochistorique_path' => 'required|file|mimes:pdf,doc,docx,txt',
         ]);
-
-        $historique = Historique::create($validatedData);
-        return response()->json([
-            'message' => 'Historique created successfully',
-            'data'    => $historique
-        ], 201);
+    
+        // Store the file and get the path
+        $filePath = $request->file('dochistorique_path')->store('historiques', 'public');
+    
+        // Save to database
+        Historique::create([
+            'description' => $request->description,
+            'task_id' => $request->task_id,
+            'change_date' => $request->change_date,
+            'dochistorique_path' => $filePath, // e.g., "historiques/filename.pdf"
+        ]);
     }
 
     // GET /api/historiques/{historique}
@@ -41,8 +44,9 @@ class HistoriqueController extends Controller
     public function update(Request $request, Historique $historique)
     {
         $validatedData = $request->validate([
-            'description' => 'required|max:255',
+            'description' => 'required|max:500',
             'change_date' => 'required|date',
+            'dochistorique_path' => 'nullable|max:255',
             'task_id'     => 'required|integer',
         ]);
 

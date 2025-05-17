@@ -8,40 +8,41 @@ export default function TaschesDetaile({ user }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [newStatus, setNewStatus] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
   const apiUrl = 'http://127.0.0.1:8000/api/v1';
+  const statusOptions = ['En attente', 'En cours', 'Terminé', 'Annulé'];
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
+        setLoading(true);
         const [tasksRes, statusesRes] = await Promise.all([
           axios.get(`${apiUrl}/tasks`),
           axios.get(`${apiUrl}/statuses`)
         ]);
 
-        // Process tasks with their latest status
         const tasksWithStatus = tasksRes.data
           .filter(task => task.division_id === user.division_id)
           .map(task => {
-            // Find all statuses for this task and get the most recent one
             const taskStatuses = statusesRes.data
               .filter(status => status.task_id === task.task_id)
               .sort((a, b) => new Date(b.date_changed) - new Date(a.date_changed));
             
-            const latestStatus = taskStatuses.length > 0 
-              ? taskStatuses[0].statut 
-              : 'Not Started'; // Default status if none exists
+            const latestStatus = taskStatuses[0]?.statut || 'En attente';
 
             return {
               ...task,
               status: latestStatus,
-              statusHistory: taskStatuses // Store all status history for the task
+              statusHistory: taskStatuses
             };
           });
 
         setTasks(tasksWithStatus);
-        setLoading(false);
+        setError(null);
       } catch (err) {
-        setError(err.message);
+        setError(err.response?.data?.message || err.message);
+      } finally {
         setLoading(false);
       }
     };
@@ -49,20 +50,51 @@ export default function TaschesDetaile({ user }) {
     fetchTasks();
   }, [user.division_id]);
 
-  const getStatusColor = (status) => {
-    if (!status) return 'bg-gray-100 text-gray-800';
-    switch(status.toLowerCase()) {
-      case 'completed':
-      case 'terminé': 
-        return 'bg-green-100 text-green-800';
-      case 'in progress':
-      case 'en cours': 
-        return 'bg-blue-100 text-blue-800';
-      case 'pending':
-      case 'en attente': 
-        return 'bg-yellow-100 text-yellow-800';
-      default: 
-        return 'bg-gray-100 text-gray-800';
+  const handleStatusUpdate = async () => {
+    if (!newStatus || !selectedTask) return;
+    
+    setIsUpdating(true);
+    setError(null);
+    const today = new Date().toISOString().split('T')[0];
+    
+    try {
+      // Update status using PUT
+      await axios.put(`${apiUrl}/statuses/${selectedTask.task_id}`, {
+        task_id: selectedTask.task_id,
+        statut: newStatus,
+        date_changed: today,
+      });
+
+      // If status is "terminé", update finish date
+      if (newStatus === 'terminé') {
+        await axios.patch(`${apiUrl}/tasks/${selectedTask.task_id}`, {
+          fin_date: today
+        });
+      }
+
+      // Refresh task data
+      const [taskRes, statusesRes] = await Promise.all([
+        axios.get(`${apiUrl}/tasks/${selectedTask.task_id}`),
+        axios.get(`${apiUrl}/statuses?task_id=${selectedTask.task_id}`)
+      ]);
+
+      const updatedTask = {
+        ...taskRes.data,
+        status: newStatus,
+        statusHistory: statusesRes.data.sort((a, b) => new Date(b.date_changed) - new Date(a.date_changed))
+      };
+
+      // Update state
+      setTasks(prev => prev.map(t => 
+        t.task_id === selectedTask.task_id ? updatedTask : t
+      ));
+      setSelectedTask(updatedTask);
+      setNewStatus('');
+      
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update status');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -86,7 +118,7 @@ export default function TaschesDetaile({ user }) {
             <tr key={task.task_id}>
               <td>{task.task_name}</td>
               <td>
-                <span className={`status-badge ${getStatusColor(task.status)}`}>
+                <span className={`status-badge status-${task.status.replace(/\s+/g,'-')}`}>
                   {task.status}
                 </span>
               </td>
@@ -99,12 +131,16 @@ export default function TaschesDetaile({ user }) {
               <td>
                 <button 
                   className="action-btn btn-details"
-                  onClick={() => setSelectedTask(task)}
+                  onClick={() => {
+                    setSelectedTask(task);
+                    setNewStatus('');
+                    setError(null);
+                  }}
                 >
-                  Show Details
+                  Modifier statu
                 </button>
                 <button className="action-btn btn-history">
-                  <Link to={`/app/History/${task.task_id}`}>Show History</Link>
+                  <Link to={`/app/History/${task.task_id}`}>Historique</Link>
                 </button>
               </td>
             </tr>
@@ -112,7 +148,6 @@ export default function TaschesDetaile({ user }) {
         </tbody>
       </table>
 
-      {/* Task Details Modal */}
       {selectedTask && (
         <div className="modal-backdrop" onClick={() => setSelectedTask(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -123,11 +158,40 @@ export default function TaschesDetaile({ user }) {
               </button>
             </div>
             <div className="modal-body">
+              {error && <div className="error-message">{error}</div>}
+              
               <div className="detail-row">
-                <span className="detail-label">Status:</span>
-                <span className={`status-badge ${getStatusColor(selectedTask.status)}`}>
+                <span className="detail-label">Statut actuel :</span>
+                <span className={`status-badge status-${selectedTask.status.replace(/\s+/g, '-')}`}>
                   {selectedTask.status}
                 </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Update Status:</span>
+                <div className="status-update-container">
+                  <select
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="status-select"
+                    disabled={isUpdating}
+                  >
+                    <option value="">Select new status</option>
+                    {statusOptions
+                      .filter(option => option !== selectedTask.status)
+                      .map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                  </select>
+                  <button
+                    onClick={handleStatusUpdate}
+                    disabled={!newStatus || isUpdating}
+                    className="update-status-btn"
+                  >
+                    {isUpdating ? 'Updating...' : 'Update Status'}
+                  </button>
+                </div>
               </div>
 
               <div className="detail-row">
@@ -147,27 +211,10 @@ export default function TaschesDetaile({ user }) {
               </div>
 
               <div className="detail-row">
-                <span className="detail-label">Description:</span>
+                <span className="detail-label">Description :</span>
                 <p className="task-description">
-                  {selectedTask.description}
+                  {selectedTask.description || 'Aucune description disponible'}
                 </p>
-              </div>
-
-              {/* Status History Section */}
-              <div className="detail-row">
-                <span className="detail-label">Status History:</span>
-                <div className="status-history">
-                  {selectedTask.statusHistory?.map((status, index) => (
-                    <div key={index} className="status-history-item">
-                      <span className={`status-badge ${getStatusColor(status.statut)}`}>
-                        {status.statut}
-                      </span>
-                      <span className="status-date">
-                        {new Date(status.date_changed).toLocaleDateString()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           </div>

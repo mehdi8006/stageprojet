@@ -9,15 +9,16 @@ import {
   CategoryScale,
   LinearScale
 } from 'chart.js';
-import './stylesres/dachboarespage.css';
 import { Box, Typography } from '@mui/material';
+import { useParams } from 'react-router-dom';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale);
 
 const apiUrl = 'http://127.0.0.1:8000/api/v1';
 
-const DashboardPage = ({user}) => {
+const Statisticepardivision = () => {
+    const { iddiv } = useParams();
   const [divisionData, setDivisionData] = useState({});
   const [tasks, setTasks] = useState([]);
   const [statuses, setStatuses] = useState([]);
@@ -33,12 +34,12 @@ const DashboardPage = ({user}) => {
         setError(null);
 
         // Fetch division data (example for division ID 1)
-        const divisionRes = await axios.get(`${apiUrl}/divisions/${user.division_id}`);
+        const divisionRes = await axios.get(`${apiUrl}/divisions/${iddiv}`);
         setDivisionData(divisionRes.data);
 
         // Fetch all tasks and filter by division
         const tasksRes = await axios.get(`${apiUrl}/tasks`);
-        const divisionTasks = tasksRes.data.filter(task => task.division_id === user.division_id);
+        const divisionTasks = tasksRes.data.filter(task => task.division_id == iddiv);
         setTasks(divisionTasks);
 
         // Fetch related data
@@ -259,7 +260,7 @@ const DashboardPage = ({user}) => {
           </ul>
         </div> 
       </div>
-      
+      <button onClick={()=>{alert(iddiv)}}>hello</button>
           
       <div className="documentsCard">
         <h3 className="sectionTitle">Recent Documents</h3>
@@ -280,4 +281,4 @@ const DashboardPage = ({user}) => {
   );
 };
 
-export default DashboardPage;
+export default Statisticepardivision;

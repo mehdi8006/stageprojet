@@ -220,3 +220,6 @@ body {
 .active .menu-icon {
   color: var(--primary-color) !important;
 }
+a {
+  text-decoration: none;
+}
